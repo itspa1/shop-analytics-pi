@@ -1,11 +1,13 @@
 #!/bin/bash
 
 #takes the first argument for the script that is some name for the interface on monitor mode else default is set to 'waln0mon'
-IFACE="${$1:-"wlan0mon"}"
+IFACE="$1"
+IFACE="${IFACE:-"wlan0mon"}"
 
 #takes the second argument for the script that is 0 else default 1 is set
 #by default channel hop is enabled for max packet capture
-CHANNEL_HOP="${$2:-1}"
+CHANNEL_HOP="$2"
+CHANNEL_HOP="${CHANNEL_HOP:-1}"
 
 # channel hop every 2 seconds
 channel_hop() {
