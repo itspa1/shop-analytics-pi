@@ -35,4 +35,5 @@ if [ "$CHANNEL_HOP" -ne 0 ] ; then
 fi
 
 #use tcpdump to get the probe-req on the interface
-sudo tcpdump -l -I -i "$IFACE" -e -s 256 type mgt subtype probe-req 
+#use -tttt for full timestamp with date format
+sudo -tttt tcpdump -l -I -i "$IFACE" -e -s 256 type mgt subtype probe-req 
