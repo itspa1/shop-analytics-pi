@@ -1,7 +1,14 @@
+import os
 import subprocess
 import threading
+import time
 import moment
 import re
+import json
+from dotenv import load_dotenv, find_dotenv
+
+#load the .env file
+load_dotenv(find_dotenv())
 
 timestamp_regex_pattern = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d+' #get the timestamp from the probe request
 rssi_regex_pattern = '-?\d+dBm' #get the rssi value from the probe request
@@ -9,6 +16,19 @@ mac_id_regex_pattern = 'SA:(?:[0-9a-fA-F]:?){12}' #need to remove SA: in the res
 ssid_regex_pattern = 'Probe Request \(.*\)' #need to remove the "Probe Request" in the result to get the ssid , would be null in case of null probe request
 
 frame_to_send = {'frame': {'probes': {'directed': [],'null': []}}} # define a frame structure with probe requests object with two classifications directed probe requests and null probe requests
+
+TIMER = time.time()
+refresh_interval = os.getenv('REFRESH_INTERVAL') #get the refresh interval in seconds from the env file
+
+
+def send_frame():
+    global TIMER
+    if frame_to_send['frame']['probes']['null'] != [] and frame_to_send['frame']['probes']['directed'] != []:
+        print("Nothing to send!")
+    else:
+        print(json.dumps(frame_to_send))
+    TIMER = TIMER + refresh_interval
+    threading.Timer(TIMER - time.time(),send_frame).start()
 
 def build_frame_to_send(timestamp,rssi,mac_id,ssid=None):
     if ssid is not None:
