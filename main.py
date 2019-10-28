@@ -6,6 +6,7 @@ import moment
 import re
 import json
 from dotenv import load_dotenv, find_dotenv
+from mqttClient import MqttClient
 
 #load the .env file
 load_dotenv(find_dotenv())
@@ -20,27 +21,48 @@ frame_to_send = {'frame': {'probes': {'directed': [],'null': []}}} # define a fr
 TIMER = time.time()
 refresh_interval = int(os.getenv('REFRESH_INTERVAL')) #get the refresh interval in seconds from the env file
 
+#flags to maintain object integrity between threads
+IS_PROCESSING = False
+DID_NOT_SEND = False
+
 def send_frame():
     global TIMER
-    if frame_to_send['frame']['probes']['null'] == [] and frame_to_send['frame']['probes']['directed'] == []:
-        #means there is nothing to send or nothing was captured between that interval
-        print("Nothing to send!")
+    global IS_PROCESSING
+    global DID_NOT_SEND
+    global frame_to_send
+    if IS_PROCESSING:
+        #Set this flag to True, so that after processing is complete that frame is sent
+        DID_NOT_SEND = True
     else:
-        #send the frame and reset it back to empty
-        print(json.dumps(frame_to_send))
-        frame_to_send = {'frame': {'probes': {'directed': [],'null': []}}}
+        #set this flag back to false so that if previous was True, that case is handled
+        DID_NOT_SEND = False
+        if frame_to_send['frame']['probes']['null'] == [] and frame_to_send['frame']['probes']['directed'] == []:
+            #means there is nothing to send or nothing was captured between that interval
+            print("Nothing to send!")
+        else:
+            #send the frame and reset it back to empty
+            print(json.dumps(frame_to_send))
+            frame_to_send = {'frame': {'probes': {'directed': [],'null': []}}}
 
     TIMER = TIMER + refresh_interval
     threading.Timer(TIMER - time.time(),send_frame).start()
 
 def build_frame_to_send(timestamp,rssi,mac_id,ssid=None):
     global frame_to_send
+    global IS_PROCESSING
+    global DID_NOT_SEND
+
+    #Set the flag to True to tell others using the global object to wait till processing is complete
+    IS_PROCESSING = True
     if ssid is not None:
         #this means it is a directed probe request
         frame_to_send['frame']['probes']['directed'].append({'timestamp':  str(moment.date(timestamp)),'rssi': rssi,'mac_id':mac_id,'ssid': ssid})
     else:
         #this means it is a null probe request
         frame_to_send['frame']['probes']['null'].append({'timestamp':  str(moment.date(timestamp)),'rssi': rssi,'mac_id':mac_id,'ssid': None})
+    #Set this flag back to False to tell others using the global object that processing is complete and the object is usable
+    IS_PROCESSING = False
+    #TODO: IF DID_NOT_SEND = True explicitly add a send block here and handle that case 
 
 
 def process_output_line(output_line):
@@ -90,14 +112,33 @@ def start_sniff_probes():
     t.start()
     t.join()
 
+def connect_to_mqtt_client(name,client_uid,username,password,host,port):
+    try:
+        mqtt_client = MqttClient("pi_connect","Random",[])
+        mqtt_client.create_client()
+        mqtt_client.client.username_pw_set(username,password)
+        mqtt_client.client.on_connect = mqtt_client.on_connect_handler
+        mqtt_client.client.on_disconnect = mqtt_client.on_disconnect_handler
+        mqtt_client.client.on_message = mqtt_client.on_message_handler
+        mqtt_client.client.connect(host,port)
+    except Exception as error:
+        print("Error while connecting to mqtt broker " + error)
+        exit(1)    
+
 print("***** Starting the Sniff script *****")
 print("Putting the wifi on monitor mode")
 exit_code_from_command = put_wifi_to_monitor_mode()
 
 #if something went wrong while putting the wifi on monitor mode exit
 if exit_code_from_command != 0:
-    print("Something went wrong!!!")
+    print("Something went wrong while putting the wifi on monitor mode!!!")
     exit(1)
+
+mqtt_username = os.getenv("MQTT_USERNAME")
+mqtt_password = os.getenv("MQTT_PASSWORD")
+mqtt_host = os.getenv("MQTT_HOST")
+mqtt_port = os.getenv("MQTT_PORT")
+connect_to_mqtt_client("pi_connect","Random",mqtt_username,mqtt_password,mqtt_host,int(mqtt_port))
 
 #if everything was setup correctly start the sniff_probes function
 start_sniff_probes()
