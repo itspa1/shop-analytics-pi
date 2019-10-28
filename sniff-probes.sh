@@ -36,4 +36,4 @@ fi
 
 #use tcpdump to get the probe-req on the interface
 #use -tttt for full timestamp with date format
-sudo -tttt tcpdump -l -I -i "$IFACE" -e -s 256 type mgt subtype probe-req 
+sudo tcpdump -tttt -l -I -i "$IFACE" -e -s 256 type mgt subtype probe-req 2> /dev/null

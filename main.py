@@ -20,17 +20,21 @@ frame_to_send = {'frame': {'probes': {'directed': [],'null': []}}} # define a fr
 TIMER = time.time()
 refresh_interval = int(os.getenv('REFRESH_INTERVAL')) #get the refresh interval in seconds from the env file
 
-
 def send_frame():
     global TIMER
     if frame_to_send['frame']['probes']['null'] == [] and frame_to_send['frame']['probes']['directed'] == []:
+        #means there is nothing to send or nothing was captured between that interval
         print("Nothing to send!")
     else:
+        #send the frame and reset it back to empty
         print(json.dumps(frame_to_send))
+        frame_to_send = {'frame': {'probes': {'directed': [],'null': []}}}
+
     TIMER = TIMER + refresh_interval
     threading.Timer(TIMER - time.time(),send_frame).start()
 
 def build_frame_to_send(timestamp,rssi,mac_id,ssid=None):
+    global frame_to_send
     if ssid is not None:
         #this means it is a directed probe request
         frame_to_send['frame']['probes']['directed'].append({'timestamp':  str(moment.date(timestamp)),'rssi': rssi,'mac_id':mac_id,'ssid': ssid})
@@ -57,8 +61,11 @@ def process_output_line(output_line):
         ssid = re.sub('Probe Request \(|\)','',ssid_with_probe) #extract the ssid (if any)
         if not ssid: #i.e SSID is '' it is a null probe request
             null_request = True
+            build_frame_to_send(timestamp,rssi,mac_id)
         else:
             null_request = False
+            build_frame_to_send(timestamp,rssi,mac_id,ssid)
+    
     
     
 
