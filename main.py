@@ -18,12 +18,12 @@ ssid_regex_pattern = 'Probe Request \(.*\)' #need to remove the "Probe Request" 
 frame_to_send = {'frame': {'probes': {'directed': [],'null': []}}} # define a frame structure with probe requests object with two classifications directed probe requests and null probe requests
 
 TIMER = time.time()
-refresh_interval = os.getenv('REFRESH_INTERVAL') #get the refresh interval in seconds from the env file
+refresh_interval = int(os.getenv('REFRESH_INTERVAL')) #get the refresh interval in seconds from the env file
 
 
 def send_frame():
     global TIMER
-    if frame_to_send['frame']['probes']['null'] != [] and frame_to_send['frame']['probes']['directed'] != []:
+    if frame_to_send['frame']['probes']['null'] == [] and frame_to_send['frame']['probes']['directed'] == []:
         print("Nothing to send!")
     else:
         print(json.dumps(frame_to_send))
@@ -78,7 +78,7 @@ def start_sniff_probes():
                             shell=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
-
+    send_frame()
     t = threading.Thread(target=read_output_from_process, args=(child_process_object,))
     t.start()
     t.join()
