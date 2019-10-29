@@ -39,7 +39,7 @@ def send_frame():
         DID_NOT_SEND = False
         if frame_to_send['frame']['probes']['null'] == [] and frame_to_send['frame']['probes']['directed'] == []:
             #means there is nothing to send or nothing was captured between that interval
-            print("Nothing to send!")
+            print("Nothing to send! No Probes were captured in the last interval/cycle.")
         else:
             #send the frame on the publish and reset it back to empty
             mqtt_client.client.publish('frame_topic',json.dumps(frame_to_send))
@@ -106,7 +106,7 @@ def put_wifi_to_monitor_mode():
 
 def read_output_from_process(proc):
     for line in iter(proc.stdout.readline, b''):
-        print('got line: {0}'.format(line.decode('utf-8')), end='')
+        # print('got line: {0}'.format(line.decode('utf-8')), end='')
         process_output_line(line.decode('utf-8'))
 
 
@@ -130,6 +130,7 @@ def connect_to_mqtt_client(username,password,host,port):
         mqtt_client.client.on_disconnect = mqtt_client.on_disconnect_handler
         mqtt_client.client.on_message = mqtt_client.on_message_handler
         mqtt_client.client.connect(host,port)
+        mqtt_client.start()
     except Exception as error:
         print("Error while connecting to mqtt broker " + error)
         exit(1)    
