@@ -20,7 +20,7 @@ class MqttClient(Thread):
         if return_code == 0:
             print(self.name + " Connected with result code " + str(return_code))
             self.connected = True
-            self.subscribe()
+            #self.subscribe()
 
     def on_subscribe_handler(self, client, obj, mid, granted_ops):
         print(self.name + " subscribed to topic")

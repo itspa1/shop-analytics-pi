@@ -30,6 +30,7 @@ def send_frame():
     global IS_PROCESSING
     global DID_NOT_SEND
     global frame_to_send
+    global mqtt_client
     if IS_PROCESSING:
         #Set this flag to True, so that after processing is complete that frame is sent
         DID_NOT_SEND = True
@@ -40,8 +41,9 @@ def send_frame():
             #means there is nothing to send or nothing was captured between that interval
             print("Nothing to send!")
         else:
-            #send the frame and reset it back to empty
-            print(json.dumps(frame_to_send))
+            #send the frame on the publish and reset it back to empty
+            mqtt_client.client.publish('frame_topic',json.dumps(frame_to_send))
+            # print(json.dumps(frame_to_send))
             frame_to_send = {'frame': {'probes': {'directed': [],'null': []}}}
 
     TIMER = TIMER + refresh_interval
@@ -51,6 +53,7 @@ def build_frame_to_send(timestamp,rssi,mac_id,ssid=None):
     global frame_to_send
     global IS_PROCESSING
     global DID_NOT_SEND
+    global mqtt_client
 
     #Set the flag to True to tell others using the global object to wait till processing is complete
     IS_PROCESSING = True
@@ -62,7 +65,13 @@ def build_frame_to_send(timestamp,rssi,mac_id,ssid=None):
         frame_to_send['frame']['probes']['null'].append({'timestamp':  str(moment.date(timestamp)),'rssi': rssi,'mac_id':mac_id,'ssid': None})
     #Set this flag back to False to tell others using the global object that processing is complete and the object is usable
     IS_PROCESSING = False
-    #TODO: IF DID_NOT_SEND = True explicitly add a send block here and handle that case 
+
+    #TODO: Handle errors!!!
+    #IF Did not send because it was still processing, now send and reset back the frame object back to empty
+    if DID_NOT_SEND:
+        mqtt_client.client.publish('frame_topic',json.dumps(frame_to_send))
+        frame_to_send = {'frame': {'probes': {'directed': [],'null': []}}}
+        DID_NOT_SEND = False
 
 
 def process_output_line(output_line):
@@ -112,9 +121,9 @@ def start_sniff_probes():
     t.start()
     t.join()
 
-def connect_to_mqtt_client(name,client_uid,username,password,host,port):
+def connect_to_mqtt_client(username,password,host,port):
     try:
-        mqtt_client = MqttClient("pi_connect","Random",[])
+        global mqtt_client
         mqtt_client.create_client()
         mqtt_client.client.username_pw_set(username,password)
         mqtt_client.client.on_connect = mqtt_client.on_connect_handler
@@ -138,7 +147,8 @@ mqtt_username = os.getenv("MQTT_USERNAME")
 mqtt_password = os.getenv("MQTT_PASSWORD")
 mqtt_host = os.getenv("MQTT_HOST")
 mqtt_port = os.getenv("MQTT_PORT")
-connect_to_mqtt_client("pi_connect","Random",mqtt_username,mqtt_password,mqtt_host,int(mqtt_port))
+mqtt_client = MqttClient("pi_connect","Random",[])
+connect_to_mqtt_client(mqtt_username,mqtt_password,mqtt_host,int(mqtt_port))
 
 #if everything was setup correctly start the sniff_probes function
 start_sniff_probes()
