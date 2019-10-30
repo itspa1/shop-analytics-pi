@@ -51,6 +51,7 @@ def send_frame():
             mqtt_client.client.publish(
                 'frame_topic', json.dumps(frame_to_send))
             # print(json.dumps(frame_to_send))
+            print("Sent frame to Server!")
             frame_to_send = {'frame': {'probes': {'directed': [], 'null': []}}}
 
     TIMER = TIMER + refresh_interval
@@ -62,6 +63,7 @@ def build_frame_to_send(timestamp, rssi, mac_id, ssid=None):
     global IS_PROCESSING
     global DID_NOT_SEND
     global mqtt_client
+
     print(f'{timestamp} {rssi} {mac_id} {ssid}')
     # Set the flag to True to tell others using the global object to wait till processing is complete
     IS_PROCESSING = True
