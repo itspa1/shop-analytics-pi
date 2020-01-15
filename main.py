@@ -1,4 +1,6 @@
 import os
+import signal
+import sys
 import subprocess
 import threading
 import time
@@ -10,6 +12,31 @@ from mqttClient import MqttClient
 
 # load the .env file
 load_dotenv(find_dotenv())
+
+# open this file to cache any frames if internet is down
+# cache_file_handler = open("cache-file", "a+")
+
+
+def put_wifi_to_managed_mode():
+    command_execute_object = subprocess.run(
+        ['sudo', 'airmon-ng', 'stop', 'wlan0mon'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return command_execute_object.returncode
+
+
+def sigterm_handler(_signo, _stack_frame):
+    # Used to gracefull kill the process and put the wlan back to managed mode
+    # Raises SystemExit(0):
+    print("Removing wifi from monitor mode")
+    exit_code_from_running_command = put_wifi_to_managed_mode()
+    if exit_code_from_command != 0:
+        print("Something went wrong while putting the wifi to managed mode!!!")
+        exit(1)
+    # else graceful exit
+    print("Gracefully exiting")
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, sigterm_handler)
 
 # get the timestamp from the probe request
 timestamp_regex_pattern = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d+'
@@ -48,12 +75,23 @@ def send_frame():
             print("Nothing to send! No Probes were captured in the last interval/cycle.")
         else:
             # send the frame on the publish and reset it back to empty
-            mqtt_client.client.publish(
-                'frame_topic', json.dumps(frame_to_send))
-            # print(json.dumps(frame_to_send))
-            print("Sent frame to Server!")
-            frame_to_send = {'frame': {'probes': {'directed': [], 'null': []}}}
+            print(mqtt_client.connected)
+            json_in_str = json.dumps(frame_to_send)
+            mqtt_client.publish_data(json_in_str)
+            # if mqtt_client.connected:
+            #     # connected so send it over mqtt
+            #     mqtt_client.client.publish(
+            #         'frame_topic', json_in_str)
+            #     # print(json_in_str)
+            #     print("Sent frame to Server!")
+            # else:
+            #     mqtt_client.cached_data_to_file = True
+            #     cache_file_handler.write(json_in_str)
+            #     print("Cached frame in file")
 
+            # reset the frame back to initial value
+            frame_to_send = {
+                'frame': {'probes': {'directed': [], 'null': []}}}
     TIMER = TIMER + refresh_interval
     threading.Timer(TIMER - time.time(), send_frame).start()
 
@@ -145,7 +183,7 @@ def connect_to_mqtt_client(username, password, host, port):
         mqtt_client.client.on_connect = mqtt_client.on_connect_handler
         mqtt_client.client.on_disconnect = mqtt_client.on_disconnect_handler
         mqtt_client.client.on_message = mqtt_client.on_message_handler
-        mqtt_client.client.connect(host, port)
+        mqtt_client.client.connect(host, port, keepalive=60)
         mqtt_client.start()
     except Exception as error:
         print("Error while connecting to mqtt broker " + error)
