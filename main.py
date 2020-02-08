@@ -76,6 +76,8 @@ def send_frame():
         else:
             # send the frame on the publish and reset it back to empty
             print(mqtt_client.connected)
+            # add timestamp to the frame to help in creating files
+            frame_to_send["timestamp"] = str(moment.utcnow())
             json_in_str = json.dumps(frame_to_send)
             mqtt_client.publish_data(json_in_str)
             # if mqtt_client.connected:
@@ -119,6 +121,8 @@ def build_frame_to_send(timestamp, rssi, mac_id, ssid=None):
     # TODO: Handle errors!!!
     # IF Did not send because it was still processing, now send and reset back the frame object back to empty
     if DID_NOT_SEND:
+        # add timestamp to the frame to help in creating files
+        frame_to_send["timestamp"] = str(moment.utcnow())
         mqtt_client.client.publish('frame_topic', json.dumps(frame_to_send))
         frame_to_send = {'frame': {'probes': {'directed': [], 'null': []}}}
         DID_NOT_SEND = False
@@ -186,7 +190,7 @@ def connect_to_mqtt_client(username, password, host, port):
         mqtt_client.client.connect(host, port, keepalive=60)
         mqtt_client.start()
     except Exception as error:
-        print("Error while connecting to mqtt broker " + error)
+        print("Error while connecting to mqtt broker " + str(error))
         exit(1)
 
 
