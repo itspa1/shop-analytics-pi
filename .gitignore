@@ -2,3 +2,4 @@
 .vscode
 test.*
 cache_file
+__pycache__/
