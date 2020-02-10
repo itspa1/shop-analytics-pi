@@ -95,7 +95,9 @@ def send_frame():
             frame_to_send = {
                 'frame': {'probes': {'directed': [], 'null': []}}}
     TIMER = TIMER + refresh_interval
-    threading.Timer(TIMER - time.time(), send_frame).start()
+    timer_thread = threading.Timer(TIMER - time.time(), send_frame)
+    timer_thread.daemon = True
+    timer_thread.start()
 
 
 def build_frame_to_send(timestamp, rssi, mac_id, ssid=None):
@@ -174,7 +176,7 @@ def start_sniff_probes():
                                             stderr=subprocess.STDOUT)
     send_frame()
     t = threading.Thread(target=read_output_from_process,
-                         args=(child_process_object,))
+                         args=(child_process_object,), daemon=True)
     t.start()
     t.join()
 
