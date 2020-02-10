@@ -3,3 +3,4 @@
 test.*
 cache_file
 __pycache__/
+log
