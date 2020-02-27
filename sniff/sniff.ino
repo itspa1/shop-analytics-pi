@@ -79,6 +79,7 @@ static void showMetadata(SnifferPacket *snifferPacket) {
   Serial.print(addr);
   uint8_t SSID_length = snifferPacket->data[25];
   //  Serial.print(" SSID: ");
+  
   if(SSID_length != 0){
     Serial.print(",");
     printDataSpan(26, SSID_length, snifferPacket->data);

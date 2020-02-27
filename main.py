@@ -6,6 +6,7 @@ import json
 import sys
 import threading
 import time
+import bugsnag
 
 from dotenv import load_dotenv, find_dotenv
 from mqttClient import MqttClient
@@ -18,6 +19,11 @@ refresh_interval = int(os.getenv('REFRESH_INTERVAL'))
 
 # initialize the timer to keep the clock
 TIMER = time.time()
+
+# Get bugsnag key to notify errors onto bugsnag
+BUGSNAG_KEY = os.getenv("BUGSNAG_KEY")
+
+bugsnag.configure(api_key=BUGSNAG_KEY)
 
 # flags to maintain object integrity between threads
 IS_PROCESSING = False
@@ -147,6 +153,8 @@ def connect_to_mqtt_client(username, password, host, port):
         mqtt_client.client.connect(host, port, keepalive=60)
         mqtt_client.start()
     except Exception as error:
+        bugsnag.notify(
+            Exception("Error while connecting to mqtt broker " + str(error)))
         print("Error while connecting to mqtt broker " + str(error))
         exit(1)
 
@@ -182,6 +190,8 @@ if sniff_type == "NATIVE":
 
     # if something went wrong while putting the wifi on monitor mode exit
     if exit_code_from_command != 0:
+        bugsnag.notify(
+            "Something went wrong while putting the wifi on monitor mode!!!")
         print("Something went wrong while putting the wifi on monitor mode!!!")
         exit(1)
 
@@ -206,9 +216,10 @@ def sigterm_handler(_signo, _stack_frame):
         print("Removing wifi from monitor mode")
         exit_code_from_running_command = native_sniffer_client.put_wifi_to_managed_mode()
         if exit_code_from_running_command != 0:
+            bugsnag.notify(
+                "Something went wrong while putting the wifi to managed mode!!!")
             print("Something went wrong while putting the wifi to managed mode!!!")
             exit(1)
-
     # else graceful exit
     print("Gracefully exiting")
     sys.exit(0)
