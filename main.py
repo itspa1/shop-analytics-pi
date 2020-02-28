@@ -183,7 +183,7 @@ if sniff_type == "NATIVE":
     ssid_regex_pattern = r'Probe Request \(.*\)'
 
     native_sniffer_client = NativeSnifferClient(
-        timestamp_regex_pattern, rssi_regex_pattern, mac_id_regex_pattern, ssid_regex_pattern)
+        timestamp_regex_pattern, rssi_regex_pattern, mac_id_regex_pattern, ssid_regex_pattern, bugsnag)
     print("***** Starting the Sniff script *****")
     print("Putting the wifi on monitor mode")
     exit_code_from_command = native_sniffer_client.put_wifi_to_monitor_mode()
@@ -203,7 +203,7 @@ elif sniff_type == "ESP8266":
     # get espConfigs
     serial_path = os.getenv("SERIAL_PATH")
     baud_rate = os.getenv("BAUD_RATE")
-    esp_sniffer_client = EspSnifferClient(serial_path, baud_rate)
+    esp_sniffer_client = EspSnifferClient(serial_path, baud_rate, bugsnag)
     esp_sniffer_client.initialize_serial()
     esp_sniffer_client.start_sniff(
         send_frame, build_frame_to_send)

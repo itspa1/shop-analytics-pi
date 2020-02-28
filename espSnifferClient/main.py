@@ -6,11 +6,12 @@ from frame import Frame
 
 class EspSnifferClient:
 
-    def __init__(self, serial_path, baud_rate):
+    def __init__(self, serial_path, baud_rate, bugsnag):
         self.serial = None
         self.serial_path = serial_path
         self.baud_rate = baud_rate
         self.frame_to_send = Frame()
+        self.bugsnag = bugsnag
 
     def initialize_serial(self):
         self.serial = serial.Serial(self.serial_path, self.baud_rate)
@@ -26,6 +27,7 @@ class EspSnifferClient:
                         # need not decode to 'utf-8' cause the esp writes to the serial in unicode and python already uses unicode natively
                         process_output_line(line.decode(), build_frame_to_send)
         except Exception as error:
+            self.bugsnag.notify(error)
             print("ERROR: " + str(error))
 
     def process_output_line(self, output_line, build_frame_to_send):
@@ -41,7 +43,9 @@ class EspSnifferClient:
                 self, timestamp, split_values[0], split_values[1].strip(), split_values[2])
         else:
             # error
-            raise Exception("Unknown output from esp")
+            self.bugsnag.notify(Exception("Unknown message from esp"), metadata={
+                                "message": output_line})
+            print("Unknown message from esp")
 
     def start_sniff(self, send_frame, build_frame_to_send):
         send_frame(self)

@@ -5,12 +5,13 @@ import re
 
 
 class NativeSnifferClient:
-    def __init__(self, timestamp_regex_pattern, rssi_regex_pattern, mac_id_regex_pattern, ssid_regex_pattern):
+    def __init__(self, timestamp_regex_pattern, rssi_regex_pattern, mac_id_regex_pattern, ssid_regex_pattern, bugsnag):
         self.timestamp_regex_pattern = timestamp_regex_pattern
         self.rssi_regex_pattern = rssi_regex_pattern
         self.mac_id_regex_pattern = mac_id_regex_pattern
         self.ssid_regex_pattern = ssid_regex_pattern
         self.frame_to_send = Frame()
+        self.bugsnag = bugsnag
 
     def put_wifi_to_managed_mode(self):
         command_execute_object = subprocess.run(
