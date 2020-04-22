@@ -12,6 +12,10 @@
   MQTT_PASSWORD=peekay
   MQTT_HOST=localhost
   MQTT_PORT=1883
+  SNIFF_TYPE=TYPE
+  SERIAL_PATH=PATH FOR SERIAL(if esp8266)
+  BAUD_RATE=baud rate (if esp8266)
+  BUGSNAG_KEY=bugsnag_key
   ```
 - run `pip3 install -r requirements.txt` to install all the required modules for this repo
 - P.S requirements.txt were generated using pipreqs, check the requirements once to ensure everything is setup properly
