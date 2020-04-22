@@ -61,45 +61,6 @@ def build_frame_to_send(client, timestamp, rssi, mac_id, ssid=None):
         DID_NOT_SEND = False
 
 
-# def process_output_line_native(output_line):
-#     # TODO: Handle Else cases for this i.e throw error and report errors
-#     timestamp_search = re.search(timestamp_regex_pattern, output_line)
-#     if timestamp_search is not None:
-#         timestamp = timestamp_search.group()
-#     rssi_search = re.search(rssi_regex_pattern, output_line)
-#     if rssi_search is not None:
-#         rssi = rssi_search.group()
-#     mac_id_search = re.search(mac_id_regex_pattern, output_line)
-#     if mac_id_search is not None:
-#         mac_id_with_sa = mac_id_search.group()
-#         # extract the macid without the SA
-#         mac_id = re.sub('SA:', '', mac_id_with_sa)
-#     ssid_search = re.search(ssid_regex_pattern, output_line)
-#     if ssid_search is not None:
-#         ssid_with_probe = ssid_search.group()
-#         # extract the ssid (if any)
-#         ssid = re.sub(r'Probe Request \(|\)', '', ssid_with_probe)
-#         if not ssid:  # i.e SSID is '' it is a null probe request
-#             build_frame_to_send(timestamp, rssi, mac_id)
-#         else:
-#             build_frame_to_send(timestamp, rssi, mac_id, ssid)
-
-
-# def process_output_line_esp(output_line):
-#     # example output line -45,02:7a:f7:c7:1c:fa or -45,7,02:7a:f7:c7:1c:fa,SSID
-#     timestamp = str(moment.utcnow())
-#     split_values = output_line.split(",")
-#     if len(split_values) == 2:
-#         # this means it has no ssid
-#         build_frame_to_send(timestamp, split_values[0], split_values[1])
-#     elif len(split_values) == 3:
-#         build_frame_to_send(
-#             timestamp, split_values[0], split_values[1], split_values[2])
-#     else:
-#         # error
-#         raise Exception("Unknown output from esp")
-
-
 def send_frame(client):
     global TIMER
     global IS_PROCESSING
@@ -122,17 +83,6 @@ def send_frame(client):
                 moment.utcnow())
             json_in_str = json.dumps(client.frame_to_send.value)
             mqtt_client.publish_data(json_in_str)
-            # if mqtt_client.connected:
-            #     # connected so send it over mqtt
-            #     mqtt_client.client.publish(
-            #         'frame_topic', json_in_str)
-            #     # print(json_in_str)
-            #     print("Sent frame to Server!")
-            # else:
-            #     mqtt_client.cached_data_to_file = True
-            #     cache_file_handler.write(json_in_str)
-            #     print("Cached frame in file")
-
             # reset the frame back to initial value
             client.frame_to_send.value = {
                 'frame': {'probes': {'directed': [], 'null': []}}}
@@ -226,3 +176,44 @@ def sigterm_handler(_signo, _stack_frame):
 
 
 signal.signal(signal.SIGINT, sigterm_handler)
+
+
+### OLD CODE ###
+
+# def process_output_line_native(output_line):
+#     # TODO: Handle Else cases for this i.e throw error and report errors
+#     timestamp_search = re.search(timestamp_regex_pattern, output_line)
+#     if timestamp_search is not None:
+#         timestamp = timestamp_search.group()
+#     rssi_search = re.search(rssi_regex_pattern, output_line)
+#     if rssi_search is not None:
+#         rssi = rssi_search.group()
+#     mac_id_search = re.search(mac_id_regex_pattern, output_line)
+#     if mac_id_search is not None:
+#         mac_id_with_sa = mac_id_search.group()
+#         # extract the macid without the SA
+#         mac_id = re.sub('SA:', '', mac_id_with_sa)
+#     ssid_search = re.search(ssid_regex_pattern, output_line)
+#     if ssid_search is not None:
+#         ssid_with_probe = ssid_search.group()
+#         # extract the ssid (if any)
+#         ssid = re.sub(r'Probe Request \(|\)', '', ssid_with_probe)
+#         if not ssid:  # i.e SSID is '' it is a null probe request
+#             build_frame_to_send(timestamp, rssi, mac_id)
+#         else:
+#             build_frame_to_send(timestamp, rssi, mac_id, ssid)
+
+
+# def process_output_line_esp(output_line):
+#     # example output line -45,02:7a:f7:c7:1c:fa or -45,7,02:7a:f7:c7:1c:fa,SSID
+#     timestamp = str(moment.utcnow())
+#     split_values = output_line.split(",")
+#     if len(split_values) == 2:
+#         # this means it has no ssid
+#         build_frame_to_send(timestamp, split_values[0], split_values[1])
+#     elif len(split_values) == 3:
+#         build_frame_to_send(
+#             timestamp, split_values[0], split_values[1], split_values[2])
+#     else:
+#         # error
+#         raise Exception("Unknown output from esp")
