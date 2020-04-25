@@ -1,5 +1,9 @@
 moment==0.8.2
+numpy==1.17.2
+opencv_contrib_python==4.2.0.32
+tensorflow_gpu==2.1.0
 bugsnag==3.6.0
-python-dotenv==0.11.0
 paho_mqtt==1.5.0
 pyserial==3.4
+python-dotenv==0.13.0
+tensorflow==2.1.0
