@@ -1,7 +1,7 @@
 import os
 import cv2
 from dotenv import load_dotenv, find_dotenv
-from detectionModules.camera_tf.tensorflowObjectDetector import TensorflowObjectDetector
+from detectionModules.camera.tf.tensorflowObjectDetector import TensorflowObjectDetector
 
 # load the .env file
 load_dotenv(find_dotenv())

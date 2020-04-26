@@ -1,6 +1,6 @@
 # from wifiBasedModule import initializeWifiModule
 
-import detectionModules.camera_tf
+import detectionModules.camera.tf
 
 # from detectionModules.wifi import initializeWifiModule
 
