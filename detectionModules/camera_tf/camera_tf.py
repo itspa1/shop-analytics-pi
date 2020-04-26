@@ -1,7 +1,7 @@
 import os
 import cv2
 from dotenv import load_dotenv, find_dotenv
-from tensorflowObjectDetector import TensorflowObjectDetector
+from detectionModules.camera_tf.tensorflowObjectDetector import TensorflowObjectDetector
 
 # load the .env file
 load_dotenv(find_dotenv())
@@ -10,7 +10,7 @@ load_dotenv(find_dotenv())
 model_path = os.getenv('MODEL_PATH')
 object_detector = TensorflowObjectDetector(path_to_checkpoint=model_path)
 threshold = float(os.getenv('THRESHOLD'))  # this is %
-# input_video = 'townVideo.avi'
+# input_video = "Inside Google's New Asia Pacific HQ _ CNBC.mp4"
 # cap = cv2.VideoCapture(input_video)
 cap = cv2.VideoCapture(0)
 #  output_video = "./output.avi"

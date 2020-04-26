@@ -1,5 +1,5 @@
 import subprocess
-from frame import Frame
+from detectionModules.wifi.frame import Frame
 import threading
 import re
 

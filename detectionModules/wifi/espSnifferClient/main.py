@@ -1,7 +1,7 @@
 import serial
 import threading
 import moment
-from frame import Frame
+from detectionModules.wifi.frame import Frame
 
 
 class EspSnifferClient:

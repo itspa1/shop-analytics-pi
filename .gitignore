@@ -5,3 +5,4 @@ cache_file
 __pycache__/
 log
 models/*
+*.mp4

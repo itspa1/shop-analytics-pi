@@ -1,14 +1,15 @@
+import json
 import os
-import moment
 import re
 import signal
-import json
 import sys
 import threading
 import time
-import bugsnag
 
-from dotenv import load_dotenv, find_dotenv
+import bugsnag
+import moment
+from dotenv import find_dotenv, load_dotenv
+
 from mqttClient import MqttClient
 
 # load the .env file
@@ -122,7 +123,7 @@ sniff_type = os.getenv('SNIFF_TYPE')
 def initializeWifiModule():
     # check the type of packet capture to use, whether to use the native raspberry-pi wifi or external esp8266
     if sniff_type == "NATIVE":
-        from nativeSnifferClient import NativeSnifferClient
+        from detectionModules.wifi.nativeSnifferClient import NativeSnifferClient
         # initialize all the necessary configs for this mode of sniffing
 
         # get the timestamp from the probe request
@@ -150,7 +151,7 @@ def initializeWifiModule():
         native_sniffer_client.start_sniff_probes(
             send_frame, build_frame_to_send)
     elif sniff_type == "ESP8266":
-        from espSnifferClient import EspSnifferClient
+        from detectionModules.wifi.espSnifferClient import EspSnifferClient
         # get espConfigs
         serial_path = os.getenv("SERIAL_PATH")
         baud_rate = os.getenv("BAUD_RATE")
