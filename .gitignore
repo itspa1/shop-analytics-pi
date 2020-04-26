@@ -6,3 +6,6 @@ __pycache__/
 log
 models/*
 *.mp4
+
+# don't ignore keep files
+!.keep
