@@ -7,8 +7,6 @@ import time
 import bugsnag
 import moment
 
-from multiprocessing import Process
-
 # initialize the timer to keep the clock
 TIMER = time.time()
 
@@ -18,16 +16,15 @@ IS_PROCESSING = False
 DID_NOT_SEND = False
 
 
-class WiFi(Process):
+class WiFi():
     def __init__(self, sniff_type, configs, mqtt_client, bugsnag):
-        Process.__init__(self)
         self.bugsnag = bugsnag
         self.mqtt_client = mqtt_client
         self.sniff_type = sniff_type
         self.refresh_interval = configs['REFRESH_INTERVAL']
         self.configs = configs
 
-    def run(self):
+    def start(self):
         # while self._running:
         self._initializeWifiModule()
         print("Stopping WIFI")
@@ -94,7 +91,6 @@ class WiFi(Process):
         timer_thread.start()
 
     def _initializeWifiModule(self):
-        print(self.mqtt_client)
         # check the type of packet capture to use, whether to use the native raspberry-pi wifi or external esp8266
         if self.sniff_type == "native":
             from detectionModules.wifi.nativeSnifferClient import NativeSnifferClient

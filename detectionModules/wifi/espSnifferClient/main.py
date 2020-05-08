@@ -53,5 +53,4 @@ class EspSnifferClient:
         t = threading.Thread(target=self.start_reading_from_serial,
                              args=([self.process_output_line, build_frame_to_send]), daemon=True)
         t.start()
-        print("--------", t.isDaemon())
         t.join()

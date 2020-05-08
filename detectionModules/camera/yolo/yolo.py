@@ -4,13 +4,10 @@ import argparse
 import time
 import cv2
 import os
-from multiprocessing import Process
 
 
-class YOLO(Process):
+class YOLO():
     def __init__(self, configs):
-        Process.__init__(self)
-        # self.stop_running = Event()
         self.model_path = configs['MODEL_PATH']
         # minimum probability to filter weak detections
         # 0.6
@@ -42,7 +39,7 @@ class YOLO(Process):
         self.crop_width = configs["WIDTH"]  # 416
         self.crop_heigth = configs["HEIGHT"]  # 416
 
-    def run(self):
+    def start(self):
         # while self._running:
         self._start_yolo()
         print("Stopping")
@@ -51,7 +48,6 @@ class YOLO(Process):
         cv2.imshow("preview", frame)
 
     def _start_yolo(self):
-        print(self)
         # load our YOLO object detector trained on COCO dataset (80 classes)
         # and determine only the *output* layer names that we need from YOLO
         print("[INFO] loading YOLO from disk...")

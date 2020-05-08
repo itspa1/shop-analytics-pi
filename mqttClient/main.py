@@ -4,13 +4,13 @@ import json
 
 
 class MqttClient(Thread):
-    def __init__(self, name, client_uid, topics, notify_main_thread):
+    def __init__(self, name, client_uid, topics):
         Thread.__init__(self)
+        Thread.daemon = True
         self.name = name
         self.connected = False
         self.cached_data_to_file = False
         self.topics = topics
-        self.notify_main_thread = notify_main_thread  # this is a function
         self.client_uid = client_uid
         self.cache_file_handler = open("cache_file", "a+")
 
@@ -18,8 +18,7 @@ class MqttClient(Thread):
         self.client.loop_forever()
 
     def on_message_handler(self, client, user_data, msg):
-        # print("new message", msg.payload)
-        self.notify_main_thread(msg.payload)
+        print("new message", msg.payload)
 
     def on_connect_handler(self, client, user_data, flags, return_code):
         if return_code == 0:
