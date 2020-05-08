@@ -20,10 +20,11 @@ class NativeSnifferClient:
 
     def put_wifi_to_monitor_mode(self):
         command_execute_object = subprocess.run(
-            ['sudo', 'airmon-ng', 'start', 'wlan0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ['sudo', 'airmon-ng', 'start', 'wlxd03745465d3b'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return command_execute_object.returncode
 
     def process_output_line(self, output_line, build_frame_to_send):
+        print(output_line)
         # TODO: Handle Else cases for this i.e throw error and report errors
         timestamp_search = re.search(self.timestamp_regex_pattern, output_line)
         if timestamp_search is not None:

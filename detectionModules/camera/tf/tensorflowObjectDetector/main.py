@@ -1,13 +1,11 @@
 import tensorflow as tf
 import numpy as np
 import time
-from multiprocessing import Process
 
 
-class TensorflowObjectDetector(Process):
+class TensorflowObjectDetector():
     # all the models would have been built and frozen at a checkpoint, it contains the checkpoint, protonbuffer,and configs used to train
     def __init__(self, path_to_checkpoint):
-        Process.__init__(self)
         print("LOADING MODEL......")
         self.path_to_checkpoint = path_to_checkpoint
         self.detection_graph = tf.Graph()
@@ -45,15 +43,10 @@ class TensorflowObjectDetector(Process):
         image_np_expanded = np.expand_dims(image, axis=0)
 
         # Actual detection.
-        start_time = time.time()
         (boxes, scores, classes, num) = self.sess.run(
             [self.detection_boxes, self.detection_scores,
                 self.detection_classes, self.num_detections],
             feed_dict={self.image_tensor: image_np_expanded})
-        end_time = time.time()
-        print(end_time)
-        elapsed_time = end_time - start_time
-        print("Elapsed Time For Frame:", elapsed_time)
 
         im_height, im_width, _ = image.shape
         boxes_list = [None for i in range(boxes.shape[1])]

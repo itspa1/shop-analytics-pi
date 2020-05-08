@@ -21,7 +21,7 @@ channel_hop() {
 	while true ; do
         #TODO: Check if all channels are necessary?
         #channel hop between all the available channels
-		for CHAN in $IEEE80211bga_intl ; do
+		for CHAN in $IEEE80211bg_intl ; do
 			# echo "switching $IFACE to channel $CHAN"
 			sudo iwconfig $IFACE channel $CHAN
 			sleep 2

@@ -4,21 +4,22 @@ import argparse
 import time
 import cv2
 import os
-from threading import Thread, Event
-from dotenv import load_dotenv, find_dotenv
 from multiprocessing import Process
 
 
 class YOLO(Process):
     def __init__(self, configs):
         Process.__init__(self)
-        self.stop_running = Event()
+        # self.stop_running = Event()
         self.model_path = configs['MODEL_PATH']
         # minimum probability to filter weak detections
-        self.minimum_probability_for_filtering_weak_detection = 0.6
+        # 0.6
+        self.minimum_probability_for_filtering_weak_detection = configs[
+            "MINIMUM_THRESHOLD"]
         # threshold when applying non-maxima suppression
         # this is the threshold upon which these detections need to be considered for NMS
-        self.threshold = 0.1  # float(os.getenv('THRESHOLD'))
+        # 0.1  # float(os.getenv('THRESHOLD'))
+        self.threshold_to_consider_for_nms_suppression = configs["NMS_SUPPRESSION_PROBABILITY"]
 
         # load the COCO class labels our YOLO model was trained on
         self.labelsPath = os.path.sep.join([self.model_path, "coco.names"])
@@ -33,6 +34,13 @@ class YOLO(Process):
         self.weightsPath = os.path.sep.join(
             [self.model_path, "yolov3.weights"])
         self.configPath = os.path.sep.join([self.model_path, "yolov3.cfg"])
+
+        # set the video_source (0,-1,or some path to video)
+        self.video_source = configs["VIDEO_SOURCE"]  # 0
+
+        # set image resize width, height
+        self.crop_width = configs["WIDTH"]  # 416
+        self.crop_heigth = configs["HEIGHT"]  # 416
 
     def run(self):
         # while self._running:
@@ -55,17 +63,17 @@ class YOLO(Process):
 
         # initialize the video stream, pointer to output video file, and
         # frame dimensions
-        input_video = "Inside Google's New Asia Pacific HQ _ CNBC.mp4"
-        vs = cv2.VideoCapture(input_video)
+        # input_video = "Inside Google's New Asia Pacific HQ _ CNBC.mp4"
+        vs = cv2.VideoCapture(self.video_source)
         # vs = cv2.VideoCapture(-1)
         # writer = None
         (W, H) = (None, None)
         frame_id = 0
         starting_time = time.time()
         # loop over frames from the video file stream
-        while not self.stop_running.is_set():
-            # while True:
-            # read the next frame from the file
+        # while not self.stop_running.is_set():
+        while True:
+                # read the next frame from the file
             (grabbed, frame) = vs.read()
             frame_id += 1
 
@@ -81,7 +89,7 @@ class YOLO(Process):
             # construct a blob from the input frame and then perform a forward
             # pass of the YOLO object detector, giving us our bounding boxes
             # and associated probabilities
-            blob = cv2.dnn.blobFromImage(frame, 1 / 255.0, (416, 416), (0, 0, 0),
+            blob = cv2.dnn.blobFromImage(frame, 1 / 255.0, (self.crop_width, self.crop_heigth), (0, 0, 0),
                                          swapRB=True, crop=False)
             net.setInput(blob)
             layerOutputs = net.forward(ln)
@@ -103,7 +111,7 @@ class YOLO(Process):
                     confidence = scores[classID]
                     # filter out weak predictions by ensuring the detected
                     # probability is greater than the minimum probability
-                    if confidence > self.threshold:
+                    if confidence > self.threshold_to_consider_for_nms_suppression:
                         # scale the bounding box coordinates back relative to
                         # the size of the image, keeping in mind that YOLO
                         # actually returns the center (x, y)-coordinates of
@@ -127,7 +135,7 @@ class YOLO(Process):
 
             # apply non-maxima suppression to suppress weak, overlapping
             # bounding boxes
-            idxs = cv2.dnn.NMSBoxes(boxes, confidences, self.threshold,
+            idxs = cv2.dnn.NMSBoxes(boxes, confidences, self.threshold_to_consider_for_nms_suppression,
                                     self.minimum_probability_for_filtering_weak_detection)
 
             l = 0
@@ -151,12 +159,13 @@ class YOLO(Process):
                     l += 1
 
             # print(l)  # current count of people detected
-
             elapsed_time = time.time() - starting_time
-            fps = frame_id/elapsed_time
-            cv2.putText(frame, "FPS:"+str(round(fps, 2)),
-                        (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 1)
 
+            fps = frame_id/elapsed_time
+            # cv2.putText(frame, "FPS:"+str(round(fps, 2)),
+            #             (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 1)
+
+            # TODO: NEED TO START SENDING OUT DATA AND ALSO, Streaming frames
             self.show_frame(frame)
 
             key = cv2.waitKey(1)

@@ -1,1 +1,1 @@
-from .main import initializeWifiModule
+from .main import WiFi
