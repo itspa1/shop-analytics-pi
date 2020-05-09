@@ -6,6 +6,7 @@ import json
 class MqttClient(Thread):
     def __init__(self, name, client_uid, topics):
         Thread.__init__(self)
+        Thread.daemon = True
         self.name = name
         self.connected = False
         self.cached_data_to_file = False
@@ -17,17 +18,18 @@ class MqttClient(Thread):
         self.client.loop_forever()
 
     def on_message_handler(self, client, user_data, msg):
-        print("new message " + msg)
+        print("new message", msg.payload)
 
     def on_connect_handler(self, client, user_data, flags, return_code):
         if return_code == 0:
             print(self.name + " Connected with result code " + str(return_code))
             self.connected = True
+            self.subscribe()
             if self.cached_data_to_file == True:
                 self.__send_cached_frames()
 
     def on_subscribe_handler(self, client, obj, mid, granted_ops):
-        print(self.name + " subscribed to topic")
+        print(self.name + " subscribed to topic", str(mid))
 
     def on_publish_handler(self, client, userdata, result):
         print("data published\n")

@@ -8,5 +8,7 @@ models/*
 *.mp4
 *.avi
 
+env.json
+
 # don't ignore keep files
 !.keep
