@@ -82,8 +82,8 @@ class WiFi():
                 json_in_str = json.dumps(client.frame_to_send.value)
                 self.mqtt_client.publish_data(json_in_str)
                 # reset the frame back to initial value
-                client.frame_to_send.value = {'type': 'wifi',
-                                              'frame': {'probes': {'directed': [], 'null': []}}}
+                client.frame_to_send.value = {
+                    'frame': {'probes': {'directed': [], 'null': []}}}
         TIMER = TIMER + self.refresh_interval
         timer_thread = threading.Timer(
             TIMER - time.time(), self.send_frame, [client])

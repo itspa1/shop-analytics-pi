@@ -4,7 +4,7 @@ import json
 
 
 class MqttClient(Thread):
-    def __init__(self, name, client_uid, topics):
+    def __init__(self, name, client_uid, topics, publish_topic):
         Thread.__init__(self)
         Thread.daemon = True
         self.name = name
@@ -12,6 +12,7 @@ class MqttClient(Thread):
         self.cached_data_to_file = False
         self.topics = topics
         self.client_uid = client_uid
+        self.publish_topic = publish_topic
         self.cache_file_handler = open("cache_file", "a+")
 
     def run(self):
@@ -49,7 +50,7 @@ class MqttClient(Thread):
     def publish_data(self, json_in_str):
         if self.connected:
             # connected so send it over mqtt
-            self.client.publish('frame_topic', json_in_str)
+            self.client.publish(self.publish_topic, json_in_str)
             print("Sent frame to server")
         else:
             # print(json_in_str)

@@ -22,8 +22,9 @@ def start_mqtt():
             mqtt_host = main_env["MQTT_HOST"]
             mqtt_port = main_env["MQTT_PORT"]
             mqtt_topics = main_env["MQTT_TOPICS"]
+            mqtt_publish_topic = main_env["PUBLISH_TOPIC"]
             mqtt_client = MqttClient("pi_connect", "Random", [
-                                    (i, 0) for i in mqtt_topics])
+                                    (i, 0) for i in mqtt_topics], mqtt_publish_topic)
 
     except IOError as error:
         # if not config file found exit
