@@ -154,7 +154,7 @@ class YOLO():
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
                     l += 1
 
-            # print(l)  # current count of people detected
+            print(l)  # current count of people detected
             elapsed_time = time.time() - starting_time
 
             fps = frame_id/elapsed_time
@@ -162,11 +162,11 @@ class YOLO():
             #             (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 1)
 
             # TODO: NEED TO START SENDING OUT DATA AND ALSO, Streaming frames
-            self.show_frame(frame)
+            # self.show_frame(frame)
 
-            key = cv2.waitKey(1)
-            if key & 0xFF == ord('q'):
-                break
+            # key = cv2.waitKey(1)
+            # if key & 0xFF == ord('q'):
+            #     break
             # TODO: CHECK IF THERE IS A NEED FOR THIS OUTPUT WRITER
             # check if the video writer is None
             # if writer is None:

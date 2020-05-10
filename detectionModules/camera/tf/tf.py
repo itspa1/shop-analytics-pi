@@ -18,14 +18,15 @@ class TF():
     def start(self):
         # input_video = "Inside Google's New Asia Pacific HQ _ CNBC.mp4"
         # cap = cv2.VideoCapture(input_video)
-        cap = cv2.VideoCapture(0)
+        # VideoStream
+        vs = cv2.VideoCapture(0)
 
         # initialize variables to capture start time and frame count to actually calculate approximate FPS
         frame_id = 0
         starting_time = time.time()
         while True:
 
-            grabbed, img = cap.read()
+            grabbed, img = vs.read()
             frame_id += 1
 
             # if not grabbed a new frame, when we reach end of stream
@@ -57,16 +58,16 @@ class TF():
             # cv2.putText(frame, "FPS:"+str(round(fps, 2)),
             #             (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 1)
 
-            self.show_frame(frame)
+            # self.show_frame(frame)
 
-            key = cv2.waitKey(1)
-            if key & 0xFF == ord('q'):
-                break
+            # key = cv2.waitKey(1)
+            # if key & 0xFF == ord('q'):
+            #     break
 
         # release the file pointers
         print("[INFO] cleaning up...")
         # writer.release()
-        cap.release()
+        vs.release()
         cv2.destroyAllWindows()
 
 

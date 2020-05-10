@@ -5,6 +5,8 @@ cache_file
 __pycache__/
 log
 models/*
+
+!models/yolov3-tiny
 *.mp4
 *.avi
 
