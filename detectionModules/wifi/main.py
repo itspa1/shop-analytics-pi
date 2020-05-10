@@ -39,7 +39,7 @@ class WiFi():
         if ssid is not None:
             # this means it is a directed probe request
             client.frame_to_send.value['frame']['probes']['directed'].append({'timestamp':  str(
-                moment.date(timestamp)), 'rssi': rssi, 'mac_id': mac_id, 'ssid': ssid})
+                moment.date(timestamp)), 'rssi': rssi, 'mac_id': mac_id, 'ssid': ssid.strip()})
         else:
             # this means it is a null probe request
             client.frame_to_send.value['frame']['probes']['null'].append({'timestamp':  str(
@@ -82,8 +82,8 @@ class WiFi():
                 json_in_str = json.dumps(client.frame_to_send.value)
                 self.mqtt_client.publish_data(json_in_str)
                 # reset the frame back to initial value
-                client.frame_to_send.value = {
-                    'frame': {'probes': {'directed': [], 'null': []}}}
+                client.frame_to_send.value = {'type': 'wifi',
+                                              'frame': {'probes': {'directed': [], 'null': []}}}
         TIMER = TIMER + self.refresh_interval
         timer_thread = threading.Timer(
             TIMER - time.time(), self.send_frame, [client])
