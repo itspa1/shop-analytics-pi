@@ -11,6 +11,8 @@ class TF():
         self.object_detector = TensorflowObjectDetector(
             path_to_checkpoint=self.model_path)
         self.threshold = configs['THRESHOLD']  # this is %
+        # set the video_source (0,-1,or some path to video)
+        self.video_source = configs["VIDEO_SOURCE"]  # 0
         self.detections = list()
 
     def start(self, start_send_frame):
@@ -26,7 +28,7 @@ class TF():
         # input_video = "Inside Google's New Asia Pacific HQ _ CNBC.mp4"
         # cap = cv2.VideoCapture(input_video)
         # VideoStream
-        vs = cv2.VideoCapture(0)
+        vs = cv2.VideoCapture(self.video_source)
 
         # initialize variables to capture start time and frame count to actually calculate approximate FPS
         frame_id = 0

@@ -24,7 +24,8 @@ class Camera():
 
     def start_send_frame(self, client):
         global TIMER
-        print(client.detections)
+        if len(client.detections) != 0:
+            print(max(client.detections))
         client.detections.clear()
         TIMER = TIMER + self.refresh_interval
         timer_thread = threading.Timer(
