@@ -4,7 +4,6 @@ import re
 import threading
 import time
 
-import bugsnag
 import moment
 
 # initialize the timer to keep the clock

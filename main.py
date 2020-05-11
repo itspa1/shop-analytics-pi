@@ -66,14 +66,15 @@ def start_modules():
     global mqtt_client
     if module_to_use == "camera":
         camera_env = all_configs["camera"]
-        if sub_module_to_use == "yolo":
-            from detectionModules.camera.yolo.yolo import YOLO
-            module_process = YOLO(camera_env)
+        if sub_module_to_use == "yolo" or sub_module_to_use == "tf":
+            from detectionModules.camera import Camera
+            module_process = Camera(
+                sub_module_to_use, camera_env, mqtt_client, bugsnag)
             module_process.start()
-        elif sub_module_to_use == "tf":
-            from detectionModules.camera.tf.tf import TF
-            module_process = TF(camera_env)
-            module_process.start()
+        # elif sub_module_to_use == "tf":
+        #     from detectionModules.camera.tf.tf import TF
+        #     module_process = TF(camera_env)
+        #     module_process.start()
         else:
             print("No submodule for camera with that name")
     elif module_to_use == "wifi":

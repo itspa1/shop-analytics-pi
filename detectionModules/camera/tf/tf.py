@@ -11,11 +11,18 @@ class TF():
         self.object_detector = TensorflowObjectDetector(
             path_to_checkpoint=self.model_path)
         self.threshold = configs['THRESHOLD']  # this is %
+        self.detections = list()
 
-    def show_frame(self, frame):
+    def start(self, start_send_frame):
+        start_send_frame(self)
+        # while self._running:
+        self._start_tf()
+        print("Stopping")
+
+    def _show_frame(self, frame):
         cv2.imshow("preview", frame)
 
-    def start(self):
+    def _start_tf(self):
         # input_video = "Inside Google's New Asia Pacific HQ _ CNBC.mp4"
         # cap = cv2.VideoCapture(input_video)
         # VideoStream
@@ -39,26 +46,27 @@ class TF():
             # print("num ------> ", num)
             # Visualization of the results of a detection.
 
-            l = 0
+            detections = 0
             for i in range(len(boxes)):
                 # Class 1 represents human
                 if classes[i] == 1 and scores[i] > self.threshold:
-                    box = boxes[i]
-                    cv2.rectangle(frame, (box[1], box[0]),
-                                  (box[3], box[2]), (255, 0, 0), 2)
+                    # box = boxes[i]
+                    # cv2.rectangle(frame, (box[1], box[0]),
+                    #               (box[3], box[2]), (255, 0, 0), 2)
                     # text = "confidence: {:.4f}".format(
                     #     scores[i])
                     # cv2.putText(frame, text, (box[1], box[1] + 1),
                     #             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-                    l += 1
+                    detections += 1
 
+            self.detections.append(detections)
             # print(l)
             elapsed_time = time.time() - starting_time
             fps = frame_id/elapsed_time
             # cv2.putText(frame, "FPS:"+str(round(fps, 2)),
             #             (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 1)
 
-            # self.show_frame(frame)
+            # self._show_frame(frame)
 
             # key = cv2.waitKey(1)
             # if key & 0xFF == ord('q'):
