@@ -30,7 +30,8 @@
     "MQTT_HOST": "localhost",
     "MQTT_PORT": 1883,
     "MQTT_TOPICS": ["remote_access"],
-    "BUGSNAG_KEY": "abc"
+    "BUGSNAG_KEY": "abc",
+    "PUBLISH_TOPIC": "frame_topic" //vary for different modules
   },
   "MODULE": "camera",
   "SUBMODULE": "yolo",
