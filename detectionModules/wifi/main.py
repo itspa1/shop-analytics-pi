@@ -16,7 +16,8 @@ DID_NOT_SEND = False
 
 
 class WiFi():
-    def __init__(self, sniff_type, configs, mqtt_client, bugsnag):
+    def __init__(self, device_mac_address, sniff_type, configs, mqtt_client, bugsnag):
+        self.device_mac_address = device_mac_address
         self.bugsnag = bugsnag
         self.mqtt_client = mqtt_client
         self.sniff_type = sniff_type
@@ -52,6 +53,8 @@ class WiFi():
             # add timestamp to the frame to help in creating files
             client.frame_to_send.value["timestamp"] = str(
                 moment.utcnow())
+            # add device mac_address
+            client.frame_to_send.value["deviceMacID"] = self.device_mac_address
             self.mqtt_client.client.publish(
                 'frame_topic', json.dumps(client.frame_to_send.value))
             client.frame_to_send.value = {
@@ -78,6 +81,8 @@ class WiFi():
                 # add timestamp to the frame to help in creating files
                 client.frame_to_send.value["timestamp"] = str(
                     moment.utcnow())
+                # add device mac_address
+                client.frame_to_send.value["deviceMacID"] = self.device_mac_address
                 json_in_str = json.dumps(client.frame_to_send.value)
                 self.mqtt_client.publish_data(json_in_str)
                 # reset the frame back to initial value

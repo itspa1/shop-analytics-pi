@@ -3,11 +3,14 @@ import signal
 import json
 from mqttClient import MqttClient
 import threading
+from getmac import get_mac_address
 
 import bugsnag
 
 module_process = None
 mqtt_client = None
+# get mac address to be sent with every ping
+device_mac_address = "".join(get_mac_address().upper().split(":"))
 
 
 def start_mqtt():
@@ -69,7 +72,7 @@ def start_modules():
         if sub_module_to_use == "yolo" or sub_module_to_use == "tf":
             from detectionModules.camera import Camera
             module_process = Camera(
-                sub_module_to_use, camera_env, mqtt_client, bugsnag)
+                device_mac_address, sub_module_to_use, camera_env, mqtt_client, bugsnag)
             module_process.start()
         # elif sub_module_to_use == "tf":
         #     from detectionModules.camera.tf.tf import TF
@@ -82,7 +85,7 @@ def start_modules():
         if sub_module_to_use == "native" or sub_module_to_use == "esp8266":
             from detectionModules.wifi import WiFi
             module_process = WiFi(
-                sniff_type=sub_module_to_use, configs=wifi_env, mqtt_client=mqtt_client, bugsnag=bugsnag)
+                device_mac_address=device_mac_address, sniff_type=sub_module_to_use, configs=wifi_env, mqtt_client=mqtt_client, bugsnag=bugsnag)
             module_process.start()
         else:
             print("No Submodule for wifi with that name")

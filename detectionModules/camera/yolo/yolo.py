@@ -61,9 +61,9 @@ class YOLO():
 
         # initialize the video stream, pointer to output video file, and
         # frame dimensions
-        input_video = "Inside Google's New Asia Pacific HQ _ CNBC.mp4"
-        vs = cv2.VideoCapture(input_video)
-        # vs = cv2.VideoCapture(self.video_source)
+        # input_video = "Inside Google's New Asia Pacific HQ _ CNBC.mp4"
+        # vs = cv2.VideoCapture(input_video)
+        vs = cv2.VideoCapture(self.video_source)
         # vs = cv2.VideoCapture(-1)
         # writer = None
         (W, H) = (None, None)

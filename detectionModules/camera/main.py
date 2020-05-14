@@ -11,7 +11,8 @@ TIMER = time.time()
 
 
 class Camera():
-    def __init__(self, sub_module_type, configs, mqtt_client, bugsnag):
+    def __init__(self, device_mac_address, sub_module_type, configs, mqtt_client, bugsnag):
+        self.device_mac_address = device_mac_address
         self.sub_module_type = sub_module_type
         self.bugsnag = bugsnag
         self.mqtt_client = mqtt_client
@@ -25,8 +26,13 @@ class Camera():
     def start_send_frame(self, client):
         global TIMER
         if len(client.detections) != 0:
-            print(max(client.detections))
-        client.detections.clear()
+            # print(max(client.detections))
+            detections = max(client.detections)
+            client.detections.clear()
+            frame = {"deviceMacId": self.device_mac_address,
+                     "detections": detections, "timestamp": str(moment.utcnow())}
+            json_string = json.dumps(frame)
+            self.mqtt_client.publish_data(json_string)
         TIMER = TIMER + self.refresh_interval
         timer_thread = threading.Timer(
             TIMER - time.time(), self.start_send_frame, [client])

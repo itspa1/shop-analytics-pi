@@ -26,7 +26,7 @@ class TF():
 
     def _start_tf(self):
         # input_video = "Inside Google's New Asia Pacific HQ _ CNBC.mp4"
-        # cap = cv2.VideoCapture(input_video)
+        # vs = cv2.VideoCapture(input_video)
         # VideoStream
         vs = cv2.VideoCapture(self.video_source)
 
