@@ -18,7 +18,7 @@ class YOLO():
     def __init__(self, configs, debug, thread_q):
         self.debug = debug
         self.model_path = configs['MODEL_PATH']
-        self.zmq = ZmqStream()
+        self.zmq = ZmqStream(configs['DEBUG_HOST'])
         # self.zmq_status = "DISCONNECTED"
         self.thread_q = thread_q
         # minimum probability to filter weak detections

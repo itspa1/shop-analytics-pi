@@ -4,9 +4,10 @@ import zmq
 
 
 class ZmqStream():
-    def __init__(self):
+    def __init__(self, host):
         # set and maintain status
         self.status = "DISCONNECTED"
+        self.host = host
         # set the port to 5556 statically, no reason to make it dynamic as of now
         self.port = "5556"
         self.zmq = None

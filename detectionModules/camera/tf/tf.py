@@ -13,7 +13,7 @@ from ..zmqStream import ZmqStream
 class TF():
     def __init__(self, configs,  debug, thread_q):
         self.debug = debug
-        self.zmq = ZmqStream()
+        self.zmq = ZmqStream(configs['DEBUG_HOST'])
         self.thread_q = thread_q
         # './ssdlite_mobilenet_v2_coco_2018_05_09/frozen_inference_graph.pb'
         self.model_path = configs['MODEL_PATH']
