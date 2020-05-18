@@ -11,13 +11,16 @@ TIMER = time.time()
 
 
 class Camera():
-    def __init__(self, device_mac_address, sub_module_type, configs, mqtt_client, bugsnag):
+    def __init__(self, device_mac_address, sub_module_type, configs, mqtt_client, bugsnag, thread_q):
         self.device_mac_address = device_mac_address
         self.sub_module_type = sub_module_type
         self.bugsnag = bugsnag
         self.mqtt_client = mqtt_client
         self.configs = configs
+        self.debug = configs["DEBUG"]
         self.refresh_interval = configs["REFRESH_INTERVAL"]
+        self.running_module = None
+        self.thread_q = thread_q
 
     def start(self):
         self._initialize_camera_module()
@@ -26,7 +29,7 @@ class Camera():
     def start_send_frame(self, client):
         global TIMER
         if len(client.detections) != 0:
-            # print(max(client.detections))
+            print(max(client.detections))
             detections = max(client.detections)
             client.detections.clear()
             frame = {"deviceMacId": self.device_mac_address,
@@ -42,9 +45,11 @@ class Camera():
     def _initialize_camera_module(self):
         if self.sub_module_type == "yolo":
             from .yolo.yolo import YOLO
-            running_module = YOLO(self.configs)
+            self.running_module = YOLO(
+                self.configs, self.debug, self.thread_q)
         elif self.sub_module_type == "tf":
             from .tf.tf import TF
-            running_module = TF(self.configs)
+            self.running_module = TF(
+                self.configs, self.debug, self.thread_q)
 
-        running_module.start(self.start_send_frame)
+        self.running_module.start(self.start_send_frame)

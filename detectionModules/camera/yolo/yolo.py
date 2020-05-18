@@ -3,12 +3,24 @@ import numpy as np
 import argparse
 import time
 import cv2
+import zmq
+from PIL import Image
+from io import BytesIO
+import base64
 import os
+import threading
+import json
+
+from ..zmqStream import ZmqStream
 
 
 class YOLO():
-    def __init__(self, configs):
+    def __init__(self, configs, debug, thread_q):
+        self.debug = debug
         self.model_path = configs['MODEL_PATH']
+        self.zmq = ZmqStream()
+        # self.zmq_status = "DISCONNECTED"
+        self.thread_q = thread_q
         # minimum probability to filter weak detections
         # 0.6
         self.minimum_probability_for_filtering_weak_detection = configs[
@@ -41,10 +53,33 @@ class YOLO():
         self.detections = list()
 
     def start(self, start_send_frame):
+        queue_consumer_thread = threading.Thread(target=self.queue_consumer, args=[
+            self.thread_q], daemon=True)
+        queue_consumer_thread.start()
         start_send_frame(self)
-        # while self._running:
         self._start_yolo()
         print("Stopping")
+
+    def _send_debug_image(self, pil_image):
+        if self.zmq.status == "DISCONNECTED":
+            print("ZMQ NOT CONNECTED, NOW CONNECTING......")
+            self.zmq.connect_zmq()
+        else:
+            image = BytesIO()
+            pil_image.save(image, format='JPEG')
+            im = image.getvalue()
+            img_data = base64.b64encode(im).decode()
+            data_url = 'loldata:image/jpg;base64,' + img_data
+            self.zmq.zmq.send_string(data_url)
+
+    def queue_consumer(self, thread_q):
+        while True:
+            data = thread_q.get()
+            # print("IN CAMERA", data)
+            messageJson = json.loads(data)
+            self.debug = messageJson["toggle"]
+            # self.running_module.toggle_degug(messageJson["toggle"])
+            thread_q.task_done()
 
     def _show_frame(self, frame):
         cv2.imshow("preview", frame)
@@ -142,32 +177,41 @@ class YOLO():
 
             # l = 0
             # ensure at least one detection exists
-            # if len(idxs) > 0:
-            #     # loop over the indexes we are keeping
-            #     for i in idxs.flatten():
-            #         # extract the bounding box coordinates
-            #         (x, y) = (boxes[i][0], boxes[i][1])
-            #         (w, h) = (boxes[i][2], boxes[i][3])
+            if self.debug:
+                if len(idxs) > 0:
+                    # loop over the indexes we are keeping
+                    for i in idxs.flatten():
+                        # extract the bounding box coordinates
+                        (x, y) = (boxes[i][0], boxes[i][1])
+                        (w, h) = (boxes[i][2], boxes[i][3])
 
-            #         # draw a bounding box rectangle and label on the frame
-            #         color = [int(c) for c in self.COLORS[classIDs[i]]]
-            #         # color = [int(c) for c in COLORS[0]]
-            #         # print(color)
-            #         cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-            #         text = "{}: {:.4f}".format(self.LABELS[classIDs[i]],
-            #                                    confidences[i])
-            #         cv2.putText(frame, text, (x, y - 5),
-            #                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-            #         l += 1
+                        # draw a bounding box rectangle and label on the frame
+                        color = [int(c) for c in self.COLORS[classIDs[i]]]
+                        # color = [int(c) for c in COLORS[0]]
+                        # print(color)
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+                        text = "{}: {:.4f}".format(self.LABELS[classIDs[i]],
+                                                   confidences[i])
+                        cv2.putText(frame, text, (x, y - 5),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    # l += 1
 
             # print(l)  # current count of people detected
             elapsed_time = time.time() - starting_time
 
-            fps = frame_id/elapsed_time
+            # fps = frame_id/elapsed_time
             # cv2.putText(frame, "FPS:"+str(round(fps, 2)),
             #             (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 1)
 
-            # TODO: NEED TO START SENDING OUT DATA AND ALSO, Streaming frames
+            # SENDING OUT DATA AND ALSO, Streaming frames based on debug flag
+            if self.debug:
+                # ret, jpeg_array = cv2.imencode('.jpg', frame)
+                jpeg_array = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                pil_image = Image.fromarray(jpeg_array)
+                self._send_debug_image(pil_image)
+            else:
+                if self.zmq.status == "CONNECTED":
+                    self.zmq.disconnect_zmq()
             # self._show_frame(frame)
 
             # key = cv2.waitKey(1)

@@ -4,7 +4,7 @@ import json
 
 
 class MqttClient(Thread):
-    def __init__(self, name, client_uid, topics, publish_topic):
+    def __init__(self, name, client_uid, topics, publish_topic, thread_q):
         Thread.__init__(self)
         Thread.daemon = True
         self.name = name
@@ -13,13 +13,16 @@ class MqttClient(Thread):
         self.topics = topics
         self.client_uid = client_uid
         self.publish_topic = publish_topic
+        self.thread_q = thread_q
         self.cache_file_handler = open("cache_file", "a+")
 
     def run(self):
         self.client.loop_forever()
 
     def on_message_handler(self, client, user_data, msg):
-        print("new message", msg.payload)
+        # print("new message", msg.payload)
+        # set the data onto the shared queue for consumers to use it
+        self.thread_q.put(msg.payload)
 
     def on_connect_handler(self, client, user_data, flags, return_code):
         if return_code == 0:

@@ -4,6 +4,7 @@ import json
 from mqttClient import MqttClient
 import threading
 from getmac import get_mac_address
+from queue import Queue
 
 import bugsnag
 
@@ -11,6 +12,9 @@ module_process = None
 mqtt_client = None
 # get mac address to be sent with every ping
 device_mac_address = "".join(get_mac_address().upper().split(":"))
+
+# create a shared queue that gets synced across threads
+shared_queue = Queue()
 
 
 def start_mqtt():
@@ -26,8 +30,9 @@ def start_mqtt():
             mqtt_port = main_env["MQTT_PORT"]
             mqtt_topics = main_env["MQTT_TOPICS"]
             mqtt_publish_topic = main_env["PUBLISH_TOPIC"]
+            # module_to_use = all_configs["MODULE"]
             mqtt_client = MqttClient("pi_connect", "Random", [
-                                    (i, 0) for i in mqtt_topics], mqtt_publish_topic)
+                (i, 0) for i in mqtt_topics], mqtt_publish_topic, shared_queue)
 
     except IOError as error:
         # if not config file found exit
@@ -72,7 +77,7 @@ def start_modules():
         if sub_module_to_use == "yolo" or sub_module_to_use == "tf":
             from detectionModules.camera import Camera
             module_process = Camera(
-                device_mac_address, sub_module_to_use, camera_env, mqtt_client, bugsnag)
+                device_mac_address, sub_module_to_use, camera_env, mqtt_client, bugsnag, shared_queue)
             module_process.start()
         # elif sub_module_to_use == "tf":
         #     from detectionModules.camera.tf.tf import TF

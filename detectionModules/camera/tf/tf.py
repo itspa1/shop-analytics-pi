@@ -1,11 +1,20 @@
 import os
 import cv2
 import time
+import threading
+from PIL import Image
+from io import BytesIO
+import base64
+import json
 from detectionModules.camera.tf.tensorflowObjectDetector import TensorflowObjectDetector
+from ..zmqStream import ZmqStream
 
 
 class TF():
-    def __init__(self, configs):
+    def __init__(self, configs,  debug, thread_q):
+        self.debug = debug
+        self.zmq = ZmqStream()
+        self.thread_q = thread_q
         # './ssdlite_mobilenet_v2_coco_2018_05_09/frozen_inference_graph.pb'
         self.model_path = configs['MODEL_PATH']
         self.object_detector = TensorflowObjectDetector(
@@ -15,11 +24,35 @@ class TF():
         self.video_source = configs["VIDEO_SOURCE"]  # 0
         self.detections = list()
 
+    def queue_consumer(self, thread_q):
+        while True:
+            data = thread_q.get()
+            # print("IN CAMERA", data)
+            messageJson = json.loads(data)
+            self.debug = messageJson["toggle"]
+            # self.running_module.toggle_degug(messageJson["toggle"])
+            thread_q.task_done()
+
     def start(self, start_send_frame):
+        queue_consumer_thread = threading.Thread(target=self.queue_consumer, args=[
+            self.thread_q], daemon=True)
+        queue_consumer_thread.start()
         start_send_frame(self)
         # while self._running:
         self._start_tf()
         print("Stopping")
+
+    def _send_debug_image(self, pil_image):
+        if self.zmq.status == "DISCONNECTED":
+            print("ZMQ NOT CONNECTED, NOW CONNECTING......")
+            self.zmq.connect_zmq()
+        else:
+            image = BytesIO()
+            pil_image.save(image, format='JPEG')
+            im = image.getvalue()
+            img_data = base64.b64encode(im).decode()
+            data_url = 'loldata:image/jpg;base64,' + img_data
+            self.zmq.zmq.send_string(data_url)
 
     def _show_frame(self, frame):
         cv2.imshow("preview", frame)
@@ -52,19 +85,29 @@ class TF():
             for i in range(len(boxes)):
                 # Class 1 represents human
                 if classes[i] == 1 and scores[i] > self.threshold:
-                    # box = boxes[i]
-                    # cv2.rectangle(frame, (box[1], box[0]),
-                    #               (box[3], box[2]), (255, 0, 0), 2)
-                    # text = "confidence: {:.4f}".format(
-                    #     scores[i])
-                    # cv2.putText(frame, text, (box[1], box[1] + 1),
-                    #             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                    if self.debug:
+                        box = boxes[i]
+                        cv2.rectangle(frame, (box[1], box[0]),
+                                      (box[3], box[2]), (255, 0, 0), 2)
+                        text = "confidence: {:.4f}".format(
+                            scores[i])
+                        cv2.putText(frame, text, (box[1], box[1] + 1),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
                     detections += 1
 
             self.detections.append(detections)
             # print(l)
-            elapsed_time = time.time() - starting_time
-            fps = frame_id/elapsed_time
+            # elapsed_time = time.time() - starting_time
+            # fps = frame_id/elapsed_time
+            # SENDING OUT DATA AND ALSO, Streaming frames based on debug flag
+            if self.debug:
+                # ret, jpeg_array = cv2.imencode('.jpg', frame)
+                jpeg_array = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                pil_image = Image.fromarray(jpeg_array)
+                self._send_debug_image(pil_image)
+            else:
+                if self.zmq.status == "CONNECTED":
+                    self.zmq.disconnect_zmq()
             # cv2.putText(frame, "FPS:"+str(round(fps, 2)),
             #             (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 1)
 
