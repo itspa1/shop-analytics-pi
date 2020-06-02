@@ -39,8 +39,9 @@ def start_mqtt():
         print("ENV Json file not found, Exiting")
         print(error)
         exit(1)
-    except:
+    except Exception as e:
         print("Error while loading config file from json")
+        print(e)
         exit(1)
 
     # print(main_env)
