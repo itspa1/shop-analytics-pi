@@ -5,7 +5,7 @@ from mqttClient import MqttClient
 import threading
 from getmac import get_mac_address
 from queue import Queue
-
+import traceback
 import bugsnag
 
 module_process = None
@@ -40,8 +40,10 @@ def start_mqtt():
         print(error)
         exit(1)
     except Exception as e:
+        tb = traceback.format_exc()
         print("Error while loading config file from json")
         print(e)
+        print(tb)
         exit(1)
 
     # print(main_env)
