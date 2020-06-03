@@ -22,7 +22,7 @@ def start_mqtt():
     try:
         with open('env.json') as config_file:
             all_configs = json.load(config_file)
-            main_env = all_configs["main"]
+            main_env = all_configs["mqtt"]
             bugsnag.configure(api_key=main_env["BUGSNAG_KEY"])
             mqtt_username = main_env["MQTT_USERNAME"]
             mqtt_password = main_env["MQTT_PASSWORD"]
