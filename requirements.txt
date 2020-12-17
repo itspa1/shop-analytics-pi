@@ -3,7 +3,7 @@ moment==0.8.2
 getmac==0.8.2
 bugsnag==3.6.0
 numpy==1.17.2
-tensorflow==1.15.2
+tensorflow==2.3.1
 paho_mqtt==1.5.0
 Pillow==7.1.2
 pyserial==3.4
